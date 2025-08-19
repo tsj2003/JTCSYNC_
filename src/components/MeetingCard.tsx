@@ -1,3 +1,5 @@
+"use client";
+
 import useMeetingActions from "@/hooks/useMeetingActions";
 import { Doc } from "../../convex/_generated/dataModel";
 import { getMeetingStatus } from "@/lib/utils";
@@ -6,6 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { CalendarIcon } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { useUser } from "@clerk/nextjs";
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 type Interview = Doc<"interviews">;
 
@@ -14,6 +21,37 @@ function MeetingCard({ interview }: { interview: Interview }) {
 
   const status = getMeetingStatus(interview);
   const formattedDate = format(new Date(interview.startTime), "EEEE, MMMM d · h:mm a");
+
+  const { user } = useUser();
+  const updateInterviewStatus = useMutation(api.interviews.updateInterviewStatus);
+
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const markSucceeded = async () => {
+    setIsUpdating(true);
+    try {
+      await updateInterviewStatus({ id: interview._id, status: 'succeeded' });
+      toast.success('Interview marked succeeded');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to mark succeeded');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const markFailed = async () => {
+    setIsUpdating(true);
+    try {
+      await updateInterviewStatus({ id: interview._id, status: 'failed' });
+      toast.success('Interview marked failed');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to mark failed');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm border-slate-700/50 hover:border-slate-600/50">
@@ -63,6 +101,13 @@ function MeetingCard({ interview }: { interview: Interview }) {
           >
             Waiting to Start
           </Button>
+        )}
+
+        {status !== "upcoming" && status !== "live" && (
+          <div className="flex gap-2">
+            <Button onClick={markSucceeded} className="bg-green-600" disabled={isUpdating}>Mark Succeeded</Button>
+            <Button onClick={markFailed} variant="outline" disabled={isUpdating}>Mark Failed</Button>
+          </div>
         )}
       </CardContent>
     </Card>

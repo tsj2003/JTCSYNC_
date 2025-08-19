@@ -12,19 +12,19 @@ export default function AdminSetup() {
   const updateUserRole = useMutation(api.users.updateUserRole);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const makeAdmin = async () => {
+  const makeCandidate = async () => {
     if (!user) return;
-    
+
     setIsUpdating(true);
     try {
       await updateUserRole({
         clerkId: user.id,
-        role: "admin",
+        role: "candidate",
       });
-      toast.success("You are now an admin! Please refresh the page.");
+      toast.success("You are now a candidate! Please refresh the page.");
     } catch (error) {
-      console.error("Failed to make admin:", error);
-      toast.error("Failed to make admin");
+      console.error("Failed to make candidate:", error);
+      toast.error("Failed to make candidate");
     } finally {
       setIsUpdating(false);
     }
@@ -32,7 +32,7 @@ export default function AdminSetup() {
 
   const makeInterviewer = async () => {
     if (!user) return;
-    
+
     setIsUpdating(true);
     try {
       await updateUserRole({
@@ -54,21 +54,22 @@ export default function AdminSetup() {
     <div className="fixed bottom-4 right-4 bg-slate-800 p-4 rounded-lg border border-slate-700 z-50">
       <h3 className="text-white font-semibold mb-2">Role Setup</h3>
       <div className="space-y-2">
-        <Button 
-          onClick={makeAdmin} 
+        <Button
+          onClick={makeCandidate}
           disabled={isUpdating}
-          className="w-full bg-purple-600 hover:bg-purple-700"
+          className="w-full bg-green-600 hover:bg-green-700"
         >
-          {isUpdating ? "Updating..." : "Make Admin"}
+          {isUpdating ? "Updating..." : "Make Candidate"}
         </Button>
-        <Button 
-          onClick={makeInterviewer} 
+        <Button
+          onClick={makeInterviewer}
           disabled={isUpdating}
           variant="outline"
           className="w-full"
         >
           {isUpdating ? "Updating..." : "Make Interviewer"}
         </Button>
+        {/* Make Admin removed - only Candidate and Interviewer options available */}
       </div>
     </div>
   );
