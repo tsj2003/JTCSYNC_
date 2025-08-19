@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "react-hot-toast";
 import UserSync from "@/components/UserSync";
+import AdminSetup from "@/components/AdminSetup";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -42,6 +43,7 @@ export default function RootLayout({
           >
             <SignedIn>
               <UserSync />
+              <AdminSetup />
               <div className="min-h-screen">
                 <Navbar />
                 <main className="px-4 sm:px-6 lg:px-8">{children}</main>

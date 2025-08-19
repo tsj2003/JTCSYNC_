@@ -1,5 +1,5 @@
 import { CODING_QUESTIONS, LANGUAGES } from "@/constants";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resizable";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -9,18 +9,50 @@ import Editor from "@monaco-editor/react";
 
 function CodeEditor() {
   const [selectedQuestion, setSelectedQuestion] = useState(CODING_QUESTIONS[0]);
-  const [language, setLanguage] = useState<"javascript" | "python" | "java">(LANGUAGES[0].id);
-  const [code, setCode] = useState(selectedQuestion.starterCode[language]);
+  const [language, setLanguage] = useState<typeof LANGUAGES[number]['id']>(LANGUAGES[0].id);
+  const [code, setCode] = useState(selectedQuestion.starterCode[language as keyof typeof selectedQuestion.starterCode]);
+  const [output, setOutput] = useState<string | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
 
   const handleQuestionChange = (questionId: string) => {
     const question = CODING_QUESTIONS.find((q) => q.id === questionId)!;
     setSelectedQuestion(question);
-    setCode(question.starterCode[language]);
+    setCode(question.starterCode[language as keyof typeof question.starterCode] as string);
   };
 
-  const handleLanguageChange = (newLanguage: "javascript" | "python" | "java") => {
+  const handleLanguageChange = (newLanguage: typeof LANGUAGES[number]['id']) => {
     setLanguage(newLanguage);
-    setCode(selectedQuestion.starterCode[newLanguage]);
+    setCode(selectedQuestion.starterCode[newLanguage as keyof typeof selectedQuestion.starterCode] as string);
+  };
+
+  const runCode = async () => {
+    setIsRunning(true);
+    setOutput(null);
+    try {
+      // Map language to Judge0 language_id (example mapping)
+      const langMap: Record<string, number> = {
+        javascript: 63, // Node.js 14.0.0
+        python: 71, // Python 3.8.1
+        java: 62, // Java
+        cpp: 54, // C++ (GCC 9.2.0)
+      };
+
+      const language_id = langMap[language] || 71;
+
+      const resp = await fetch('/api/runCode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source_code: code, language_id }),
+      });
+      const data = await resp.json();
+      // Judge0 returns stdout/stderr/compile_output in base64 or plain depending on settings
+      setOutput(JSON.stringify(data, null, 2));
+    } catch (err) {
+      console.error(err);
+      setOutput('Execution failed');
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -163,6 +195,16 @@ function CodeEditor() {
       {/* CODE EDITOR */}
       <ResizablePanel defaultSize={60} maxSize={100}>
         <div className="h-full relative">
+          <div className="absolute top-4 right-4 z-40 flex gap-2">
+            <button
+              onClick={runCode}
+              disabled={isRunning}
+              className="px-3 py-1 rounded bg-green-600 text-white"
+            >
+              {isRunning ? 'Running...' : 'Run'}
+            </button>
+          </div>
+
           <Editor
             height={"100%"}
             defaultLanguage={language}
@@ -181,6 +223,10 @@ function CodeEditor() {
               wrappingIndent: "indent",
             }}
           />
+
+          <div className="absolute left-0 right-0 bottom-0 bg-slate-800/80 p-3 max-h-40 overflow-auto">
+            <pre className="text-sm text-white whitespace-pre-wrap">{output ?? 'Output will appear here'}</pre>
+          </div>
         </div>
       </ResizablePanel>
     </ResizablePanelGroup>

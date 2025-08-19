@@ -10,7 +10,9 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 function MeetingPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const rawId = params?.id;
+  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
   const { isLoaded } = useUser();
   const { call, isCallLoading } = useGetCallById(id);
   const [isClient, setIsClient] = useState(false);

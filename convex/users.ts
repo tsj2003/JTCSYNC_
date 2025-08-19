@@ -9,12 +9,28 @@ export const syncUser = mutation({
     image: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Try to find existing user by clerkId using the index
     const existingUser = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("clerkId"), args.clerkId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
       .first();
 
-    if (existingUser) return;
+    if (existingUser) {
+      // Upsert semantics: update name/email/image and ensure a default role exists
+      const patch: Record<string, any> = {
+        name: args.name,
+        email: args.email,
+      };
+      if (args.image) patch.image = args.image;
+      if (!existingUser.role) patch.role = "candidate";
+
+      // Only patch if there are fields to update
+      if (Object.keys(patch).length > 0) {
+        await ctx.db.patch(existingUser._id, patch);
+      }
+
+      return existingUser;
+    }
 
     return await ctx.db.insert("users", {
       ...args,

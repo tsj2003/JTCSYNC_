@@ -87,6 +87,13 @@ function InterviewScheduleUI() {
         interviewerIds,
       });
 
+      // created interview; email alert removed per request
+      // previously: await fetch('/api/sendInterviewEmail', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ candidateEmail: candidateEmail, streamCallId }),
+      // });
+
       setOpen(false);
       toast.success("Meeting scheduled successfully!");
 

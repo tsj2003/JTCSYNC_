@@ -1,4 +1,5 @@
 import { Clock, Code2, Calendar, Users } from "lucide-react";
+import { MORE_CODING_QUESTIONS } from "./more_questions";
 
 export const INTERVIEW_CATEGORY = [
   { id: "upcoming", title: "Upcoming Interviews", variant: "outline" },
@@ -90,6 +91,12 @@ export const CODING_QUESTIONS: CodeQuestion[] = [
         
     }
 }`,
+      cpp: `#include <bits/stdc++.h>
+using namespace std;
+vector<int> twoSum(vector<int>& nums, int target) {
+    // Write your solution here
+    return {};
+}`,
     },
     constraints: [
       "2 ≤ nums.length ≤ 104",
@@ -165,10 +172,14 @@ export const CODING_QUESTIONS: CodeQuestion[] = [
   },
 ];
 
+// Append more questions
+CODING_QUESTIONS.push(...(MORE_CODING_QUESTIONS as any));
+
 export const LANGUAGES = [
   { id: "javascript", name: "JavaScript", icon: "/javascript.png" },
   { id: "python", name: "Python", icon: "/python.png" },
   { id: "java", name: "Java", icon: "/java.png" },
+  { id: "cpp", name: "C++", icon: "/java.png" }, // add C++ (use same icon or add /cpp.png)
 ] as const;
 
 export interface CodeQuestion {
@@ -184,6 +195,7 @@ export interface CodeQuestion {
     javascript: string;
     python: string;
     java: string;
+    cpp?: string;
   };
   constraints?: string[];
 }
